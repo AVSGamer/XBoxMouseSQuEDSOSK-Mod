@@ -1,0 +1,6 @@
+1. Replace Keyboard design.
+--Keyboard Mode(Y"Only Works when Mouse Mode is on.")
+--Somehow Disable gamepad functioning as a reular gamepad when in KB Mode.
+--Figure out the formulas for the Joystick regions.
+--Show Tooltip for selected letter.
+--Press A to input selected letter.

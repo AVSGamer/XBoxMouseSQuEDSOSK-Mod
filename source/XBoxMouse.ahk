@@ -5,6 +5,10 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 ToggleMouseSimulator := 0 ; Default value
+ToggleKeyBoardMode := 0 ; Default value
+KeebJoyActive := 0 ; Default value
+LetterOrNumSym := 0 ; Default value
+SelectedKey := "" ; Default value
 ToggleTrigger := 0 ; Default value
 HaltProgram := 0 ; Default value
 LastRT := 0 ; Default values
@@ -448,7 +452,15 @@ ToggleMouseSet:
 			}
 		Menu, tray, Check, Enable Mouse Simulator
 	}
-	else
+	else if (ToggleKeyBoardMode = 1)
+	{
+		Tooltip Keyboard Mode`nENABLED
+		ToggleMouseSimulator = 1
+		Menu, tray, Uncheck, Enable Mouse Simulator
+		SetTimer KeebMode, on
+		Settimer TooltipOff, 2000
+		return
+	} else
 	{
 		Tooltip Mouse Simulator`nDISABLED
 			if NeverHideCursor
@@ -475,31 +487,35 @@ return
 
 ; TOGGLE ON SCREEN KEYBOARD
 KeyKeyboard:
-	if (ToggleMouseSimulator = 1)
-		return
-	SetMouseDelay, -1  ; Makes movement smoother.
-	if GetKeyState(JoystickPrefix . 5) ; ignore inputs while holding down this button
-		{
-		if GetKeyState(JoystickPrefix . 6) ; ignore inputs while holding down this button
-			Return
-		}
+	; SetMouseDelay, -1  ; Makes movement smoother.
+	; if GetKeyState(JoystickPrefix . 5) ; ignore inputs while holding down this button
+	; 	{
+	; 	if GetKeyState(JoystickPrefix . 6) ; ignore inputs while holding down this button
+	; 		Return
+	; 	}
 		
 	;Start ON SCREEN keyboard
-	Process, Exist, osk.exe ; check to see if process is running
-	If (ErrorLevel = 0) ; If it is not running
-	   {
-	   DllCall("Wow64DisableWow64FsRedirection", "uint*", OldValue) 
-	   Run osk.exe
-	   DllCall("Wow64RevertWow64FsRedirection", "uint", OldValue) 
-	   }
-	Else ; If it is running, ErrorLevel equals the process id for the target program (Printkey). Then close it.
-	   {
-		;DllCall("Wow64DisableWow64FsRedirection", "uint*", OldValue) 
-		Process, Close, %ErrorLevel%
-		;DllCall("Wow64RevertWow64FsRedirection", "uint", OldValue) 
-	   } 
-	Process, Exist, MSSWCHX.EXE ; check to see if WINDOWS XP OLD keyboard process is running to prevent multiple instances
-	Process, Close, %ErrorLevel%
+	;Khayeel: To be replaced with Keyboard Mode
+	; Process, Exist, osk.exe ; check to see if process is running
+	; If (ErrorLevel = 0) ; If it is not running
+	;    {
+	;    DllCall("Wow64DisableWow64FsRedirection", "uint*", OldValue) 
+	;    Run osk.exe
+	;    DllCall("Wow64RevertWow64FsRedirection", "uint", OldValue) 
+	;    }
+	; Else ; If it is running, ErrorLevel equals the process id for the target program (Printkey). Then close it.
+	;    {
+	; 	;DllCall("Wow64DisableWow64FsRedirection", "uint*", OldValue) 
+	; 	Process, Close, %ErrorLevel%
+	; 	;DllCall("Wow64RevertWow64FsRedirection", "uint", OldValue) 
+	;    } 
+	; Process, Exist, MSSWCHX.EXE ; check to see if WINDOWS XP OLD keyboard process is running to prevent multiple instances
+	; Process, Close, %ErrorLevel%
+	if (ToggleMouseSimulator = 0) AND (ToggleKeyBoardMode = 0)
+		{
+			ToggleKeyBoardMode = 1
+			Goto ToggleMouseSet
+		}
 return
 
 
@@ -523,6 +539,688 @@ LeftRightTrigger:
 			}
 		}
 	}
+return
+
+KeebMode:
+	if (ToggleMouseSimulator = 1) AND (ToggleKeyBoardMode = 1)
+	{
+		; KeebMode is on so disable regular gamepad functionality and replace the Left/Right Stick, Button A, Button Y, And Left Bumper with KeebMode functions.
+		; Button A
+		Hotkey, %JoystickPrefix%1, Blank
+		; Start Button
+		Hotkey, %JoystickPrefix%8, Blank
+		; Back Button
+		Hotkey, %JoystickPrefix%7, Blank
+		; Left Stick Button
+		Hotkey, %JoystickPrefix%9, Blank
+		; Right Stick Button
+		Hotkey, %JoystickPrefix%10, Blank
+
+
+		; Remap the buttons to keebmode functions
+		; Left Bumper
+		Hotkey, %JoystickPrefix%5, CapsLockToggle
+		; Right Bumper
+		Hotkey, %JoystickPrefix%6, KeebModeSendKey
+		; Button A
+		Hotkey, %JoystickPrefix%1, SpacebarSend
+		; Button B
+		Hotkey, %JoystickPrefix%2, BackspaceSend
+		; Button Y
+		Hotkey, %JoystickPrefix%4, KeebModeOffSwitch
+		; Button X
+		Hotkey, %JoystickPrefix%3, JoySwitch
+		; Check if Letters Mode or Numbers and Symbols Mode
+		if (LetterOrNumSym = 0)
+			{
+				if GetKeyState("CapsLock", "T")
+				{
+					;Check KeebJoyActive to see which Joystick side to track
+					if (KeebJoyActive = 0)
+						{
+							; Left Stick
+							GetKeyState, joyx, %JoystickNumber%JoyX
+							GetKeyState, joyy, %JoystickNumber%JoyY
+							if (joyx>=40) AND (joyx<=60) AND (joyy>=10) AND (joyy<=90)
+							{
+								; Centered
+								ToolTip D
+								SelectedKey := "D"
+							}
+							else if (joyx>=40) AND (joyx<=60) AND (joyy<=10)
+							{
+								; MidTop
+								ToolTip E
+								SelectedKey := "E"
+							}	
+							else if (joyx>=40) AND (joyx<=60) AND (joyy>=90)
+							{
+								; MidBot
+								ToolTip C
+								SelectedKey := "C"
+							}
+							else if (joyx<=10) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidLeft
+								ToolTip A
+								SelectedKey := "A"
+							}
+							else if (joyx>=90) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidRight
+								ToolTip G
+								SelectedKey := "G"
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy<=25)
+							{
+								; TopLeft
+								ToolTip W
+								SelectedKey := "W"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy<=25)
+							{
+								; TopRight
+								ToolTip R
+								SelectedKey := "R"
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy>=75)
+							{
+								; BotLeft
+								ToolTip X
+								SelectedKey := "X"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy>=75)
+							{
+								; BotRight
+								ToolTip V
+								SelectedKey := "V"
+							}
+							else if (joyx<=25) AND (joyy<=35) AND (joyy>=25)
+							{
+								; LeftTop
+								ToolTip Q
+								SelectedKey := "Q"
+							}
+							else if (joyx>=75) AND (joyy<=35) AND (joyy>=25)
+							{
+								; RightTop
+								ToolTip T
+								SelectedKey := "T"
+							}
+							else if (joyx<=25) AND (joyy<=75) AND (joyy>=65)
+							{
+								; LeftBot
+								ToolTip Z
+								SelectedKey := "Z"
+							}
+							else if (joyx>=75) AND (joyx<=75) AND (joyy>=65)
+							{
+								; RightBot
+								ToolTip B
+								SelectedKey := "B"
+							}
+							else if (joyx>=11) AND (joyx<=39) AND (joyy<=75) AND (joyy>=26)
+							{
+								; LeftMid
+								ToolTip S
+								SelectedKey := "S"
+							}
+							else if (joyx>=61) AND (joyx<=89) AND (joyy<=75) AND (joyy>=26)
+							{
+								; RightMid
+								ToolTip F
+								SelectedKey := "F"
+							}
+						}
+						else
+						{
+							; Right Stick
+							GetKeyState, joyu, %JoystickNumber%JoyU
+							GetKeyState, joyr, %JoystickNumber%JoyR
+							if (joyu>=40) AND (joyu<=60) AND (joyr>=10) AND (joyr<=90)
+							{
+								; Centered
+								ToolTip K
+								SelectedKey := "K"
+							}
+							else if (joyu>=40) AND (joyu<=60) AND (joyr<=10)
+							{
+								; MidTop
+								ToolTip I
+								SelectedKey := "I"
+							}	
+							else if (joyu>=40) AND (joyu<=60) AND (joyr>=90)
+							{
+								; MidBot
+								ToolTip <
+								SelectedKey := "<"
+							}
+							else if (joyu<=10) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidLeft
+								ToolTip H
+								SelectedKey := "H"
+							}
+							else if (joyu>=90) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidRight
+								ToolTip Swap to Numbers & Symbols
+								SelectedKey := "PalSwitch"
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr<=25)
+							{
+								; TopLeft
+								ToolTip U
+								SelectedKey := "U"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr<=25)
+							{
+								; TopRight
+								ToolTip O
+								SelectedKey := "O"
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr>=75)
+							{
+								; BotLeft
+								ToolTip M
+								SelectedKey := "M"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr>=75)
+							{
+								; BotRight
+								ToolTip >
+								SelectedKey := ">"
+							}
+							else if (joyu<=25) AND (joyr<=35) AND (joyr>=25)
+							{
+								; LeftTop
+								ToolTip Y
+								SelectedKey := "Y"
+							}
+							else if (joyu>=75) AND (joyr<=35) AND (joyr>=25)
+							{
+								; RightTop
+								ToolTip P
+								SelectedKey := "P"
+							}
+							else if (joyu<=25) AND (joyr<=75) AND (joyr>=65)
+							{
+								; LeftBot
+								ToolTip N
+								SelectedKey := "N"
+							}
+							else if (joyu>=75) AND (joyu<=75) AND (joyr>=65)
+							{
+								; RightBot
+								ToolTip ?
+								SelectedKey := "?"
+							}
+							else if (joyu>=11) AND (joyu<=39) AND (joyr<=75) AND (joyr>=26)
+							{
+								; LeftMid
+								ToolTip J
+								SelectedKey := "J"
+							}
+							else if (joyu>=61) AND (joyu<=89) AND (joyr<=75) AND (joyr>=26)
+							{
+								; RightMid
+								ToolTip L
+								SelectedKey := "L"
+							}
+						}
+				}
+				else
+				{
+					;Caps Lock is off so use small letters
+					;Check KeebJoyActive to see which Joystick side to track
+					if (KeebJoyActive = 0)
+						{
+							; Left Stick
+							GetKeyState, joyx, %JoystickNumber%JoyX
+							GetKeyState, joyy, %JoystickNumber%JoyY
+							if (joyx>=40) AND (joyx<=60) AND (joyy>=10) AND (joyy<=90)
+							{
+								; Centered
+								ToolTip d
+								SelectedKey := "d"
+							}
+							else if (joyx>=40) AND (joyx<=60) AND (joyy<=10)
+							{
+								; MidTop
+								ToolTip e
+								SelectedKey := "e"
+							}	
+							else if (joyx>=40) AND (joyx<=60) AND (joyy>=90)
+							{
+								; MidBot
+								ToolTip c
+								SelectedKey := "c"
+							}
+							else if (joyx<=10) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidLeft
+								ToolTip a
+								SelectedKey := "a"
+							}
+							else if (joyx>=90) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidRight
+								ToolTip g
+								SelectedKey := "g"
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy<=25)
+							{
+								; TopLeft
+								ToolTip w
+								SelectedKey := "w"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy<=25)
+							{
+								; TopRight
+								ToolTip r
+								SelectedKey := "r"
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy>=75)
+							{
+								; BotLeft
+								ToolTip x
+								SelectedKey := "x"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy>=75)
+							{
+								; BotRight
+								ToolTip v
+								SelectedKey := "v"
+							}
+							else if (joyx<=25) AND (joyy<=35) AND (joyy>=25)
+							{
+								; LeftTop
+								ToolTip q
+								SelectedKey := "q"
+							}
+							else if (joyx>=75) AND (joyy<=35) AND (joyy>=25)
+							{
+								; RightTop
+								ToolTip t
+								SelectedKey := "t"
+							}
+							else if (joyx<=25) AND (joyy<=75) AND (joyy>=65)
+							{
+								; LeftBot
+								ToolTip z
+								SelectedKey := "z"
+							}
+							else if (joyx>=75) AND (joyx<=75) AND (joyy>=65)
+							{
+								; RightBot
+								ToolTip b
+								SelectedKey := "b"
+							}
+							else if (joyx>=11) AND (joyx<=39) AND (joyy<=75) AND (joyy>=26)
+							{
+								; LeftMid
+								ToolTip s
+								SelectedKey := "s"
+							}
+							else if (joyx>=61) AND (joyx<=89) AND (joyy<=75) AND (joyy>=26)
+							{
+								; RightMid
+								ToolTip f
+								SelectedKey := "f"
+							}
+						}
+						else
+						{
+							; Right Stick
+							GetKeyState, joyu, %JoystickNumber%JoyU
+							GetKeyState, joyr, %JoystickNumber%JoyR
+							if (joyu>=40) AND (joyu<=60) AND (joyr>=10) AND (joyr<=90)
+							{
+								; Centered
+								ToolTip k
+								SelectedKey := "k"
+							}
+							else if (joyu>=40) AND (joyu<=60) AND (joyr<=10)
+							{
+								; MidTop
+								ToolTip i
+								SelectedKey := "i"
+							}	
+							else if (joyu>=40) AND (joyu<=60) AND (joyr>=90)
+							{
+								; MidBot
+								ToolTip ,
+								SelectedKey := ","
+							}
+							else if (joyu<=10) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidLeft
+								ToolTip h
+								SelectedKey := "h"
+							}
+							else if (joyu>=90) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidRight
+								ToolTip Swap to Numbers & Symbols
+								SelectedKey := "PalSwitch"
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr<=25)
+							{
+								; TopLeft
+								ToolTip u
+								SelectedKey := "u"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr<=25)
+							{
+								; TopRight
+								ToolTip o
+								SelectedKey := "o"
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr>=75)
+							{
+								; BotLeft
+								ToolTip m
+								SelectedKey := "m"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr>=75)
+							{
+								; BotRight
+								ToolTip .
+								SelectedKey := "."
+							}
+							else if (joyu<=25) AND (joyr<=35) AND (joyr>=25)
+							{
+								; LeftTop
+								ToolTip y
+								SelectedKey := "y"
+							}
+							else if (joyu>=75) AND (joyr<=35) AND (joyr>=25)
+							{
+								; RightTop
+								ToolTip p
+								SelectedKey := "p"
+							}
+							else if (joyu<=25) AND (joyr<=75) AND (joyr>=65)
+							{
+								; LeftBot
+								ToolTip n
+								SelectedKey := "n"
+							}
+							else if (joyu>=75) AND (joyu<=75) AND (joyr>=65)
+							{
+								; RightBot
+								ToolTip /
+								SelectedKey := "/"
+							}
+							else if (joyu>=11) AND (joyu<=39) AND (joyr<=75) AND (joyr>=26)
+							{
+								; LeftMid
+								ToolTip j
+								SelectedKey := "j"
+							}
+							else if (joyu>=61) AND (joyu<=89) AND (joyr<=75) AND (joyr>=26)
+							{
+								; RightMid
+								ToolTip l
+								SelectedKey := "l"
+							}
+						}
+				}
+			}
+		else
+			{
+				;If LetterOrNumSym = 1 then use numbers and symbols
+				;Check KeebJoyActive to see which Joystick side to track
+					if (KeebJoyActive = 0)
+						{
+							; Left Stick
+							GetKeyState, joyx, %JoystickNumber%JoyX
+							GetKeyState, joyy, %JoystickNumber%JoyY
+							if (joyx>=40) AND (joyx<=60) AND (joyy>=10) AND (joyy<=90)
+							{
+								; Centered
+								ToolTip `;
+								SelectedKey := ";"
+							}
+							else if (joyx>=40) AND (joyx<=60) AND (joyy<=10)
+							{
+								; MidTop
+								ToolTip 8
+								SelectedKey := "8"
+							}	
+							else if (joyx>=40) AND (joyx<=60) AND (joyy>=90)
+							{
+								; MidBot
+								ToolTip 2
+								SelectedKey := "2"
+							}
+							else if (joyx<=10) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidLeft
+								ToolTip 5
+								SelectedKey := "5"
+							}
+							else if (joyx>=90) AND (joyy>=35) AND (joyy<=65)
+							{
+								; MidRight
+								ToolTip `"
+								SelectedKey := Chr(34)
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy<=25)
+							{
+								; TopLeft
+								ToolTip 7
+								SelectedKey := "7"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy<=25)
+							{
+								; TopRight
+								ToolTip 9
+								SelectedKey := "9"
+							}
+							else if (joyx>=30) AND (joyx<=40) AND (joyy>=75)
+							{
+								; BotLeft
+								ToolTip 3
+								SelectedKey := "3"
+							}
+							else if (joyx>=60) AND (joyx<=70) AND (joyy>=75)
+							{
+								; BotRight
+								ToolTip 1
+								SelectedKey := "1"
+							}
+							else if (joyx<=25) AND (joyy<=35) AND (joyy>=25)
+							{
+								; LeftTop
+								ToolTip 6
+								SelectedKey := "6"
+							}
+							else if (joyx>=75) AND (joyy<=35) AND (joyy>=25)
+							{
+								; RightTop
+								ToolTip 0
+								SelectedKey := "0"
+							}
+							else if (joyx<=25) AND (joyy<=75) AND (joyy>=65)
+							{
+								; LeftBot
+								ToolTip 4
+								SelectedKey := "4"
+							}
+							else if (joyx>=75) AND (joyx<=75) AND (joyy>=65)
+							{
+								; RightBot
+								ToolTip ``
+								SelectedKey := "``"
+							}
+							else if (joyx>=11) AND (joyx<=39) AND (joyy<=75) AND (joyy>=26)
+							{
+								; LeftMid
+								ToolTip `-
+								SelectedKey := "-"
+							}
+							else if (joyx>=61) AND (joyx<=89) AND (joyy<=75) AND (joyy>=26)
+							{
+								; RightMid
+								ToolTip `=
+								SelectedKey := "="
+							}
+						}
+						else
+						{
+							; Right Stick
+							GetKeyState, joyu, %JoystickNumber%JoyU
+							GetKeyState, joyr, %JoystickNumber%JoyR
+							if (joyu>=40) AND (joyu<=60) AND (joyr>=10) AND (joyr<=90)
+							{
+								; Centered
+								ToolTip `:
+								SelectedKey := ":"
+							}
+							else if (joyu>=40) AND (joyu<=60) AND (joyr<=10)
+							{
+								; MidTop
+								ToolTip *
+								SelectedKey := "*"
+							}	
+							else if (joyu>=40) AND (joyu<=60) AND (joyr>=90)
+							{
+								; MidBot
+								ToolTip @
+								SelectedKey := "@"
+							}
+							else if (joyu<=10) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidLeft
+								ToolTip `%
+								SelectedKey := "%"
+							}
+							else if (joyu>=90) AND (joyr>=35) AND (joyr<=65)
+							{
+								; MidRight
+								ToolTip Swap to Letters
+								SelectedKey := "PalSwitch"
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr<=25)
+							{
+								; TopLeft
+								ToolTip `&
+								SelectedKey := "&"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr<=25)
+							{
+								; TopRight
+								ToolTip `(
+								SelectedKey := "("
+							}
+							else if (joyu>=30) AND (joyu<=40) AND (joyr>=75)
+							{
+								; BotLeft
+								ToolTip `#
+							SelectedKey := "{#}"
+							}
+							else if (joyu>=60) AND (joyu<=70) AND (joyr>=75)
+							{
+								; BotRight
+								ToolTip `!
+								SelectedKey := "{!}"
+							}
+							else if (joyu<=25) AND (joyr<=35) AND (joyr>=25)
+							{
+								; LeftTop
+								ToolTip `^
+								SelectedKey := "{^}"
+							}
+							else if (joyu>=75) AND (joyr<=35) AND (joyr>=25)
+							{
+								; RightTop
+							ToolTip `)
+								SelectedKey := ")"
+							}
+							else if (joyu<=25) AND (joyr<=75) AND (joyr>=65)
+							{
+								; LeftBot
+								ToolTip `$
+								SelectedKey := "$"
+							}
+							else if (joyu>=75) AND (joyr<=75) AND (joyr>=65)
+							{
+								; RightBot
+								ToolTip `~
+								SelectedKey := "~"
+							}
+							else if (joyu>=11) AND (joyu<=39) AND (joyr<=75) AND (joyr>=26)
+							{
+								; LeftMid
+								ToolTip `_
+								SelectedKey := "_"
+							}
+							else if (joyu>=61) AND (joyu<=89) AND (joyr<=75) AND (joyr>=26)
+							{
+								; RightMid
+								ToolTip `+
+								SelectedKey := "{+}"
+							}
+						}
+			}
+	}
+return
+
+BackspaceSend:
+	Send {Backspace}
+return
+
+SpacebarSend:
+	Send {SC039}
+return
+KeebModeSendKey:
+	; KeebMode is on so send the key that is currently selected
+	if (SelectedKey = "PalSwitch")
+	{
+		if (LetterOrNumSym = 0)
+		{
+			LetterOrNumSym = 1 ; Switch to number/symbol mode
+		}
+		else
+		{
+			LetterOrNumSym = 0 ; Switch to letter mode
+		}
+	}
+	else
+	{
+		Send %SelectedKey% ; Send the selected key
+	}
+return
+
+JoySwitch:
+if (KeebJoyActive = 0)
+	{
+		KeebJoyActive = 1
+	}
+	else
+	{
+		KeebJoyActive = 0
+	}
+return
+
+CapsLockToggle:
+	; Toggle Caps Lock
+	if GetKeyState("CapsLock", "T")
+	{
+		SetCapsLockState, Off
+		ToolTip Caps Lock Off
+	}
+	else
+	{
+		SetCapsLockState, On
+		ToolTip Caps Lock On
+	}
+	SetTimer TooltipOff, 500
+Return
+
+KeebModeOffSwitch:
+	Reload
 return
 
 IncreaseVolume:
@@ -1485,7 +2183,7 @@ XInput_SetState(UserIndex, LeftMotorSpeed, RightMotorSpeed)
     Retrieves the capabilities and features of a connected controller.
     
     Parameters:
-        UserIndex   -   [in] Index of the user's controller. Can be a value in the range 0–3.
+        UserIndex   -   [in] Index of the user's controller. Can be a value in the range 0ï¿½3.
         Flags       -   [in] Input flags that identify the controller type.
                                 0   - All controllers.
                                 1   - XINPUT_FLAG_GAMEPAD: Xbox 360 Controllers only.
