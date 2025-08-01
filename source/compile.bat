@@ -1,3 +1,4 @@
 taskkill /im XBoxMouse.exe
-del XBoxMouse.exe
-"%ProgramFiles(x86)%\AutoHotkey\Compiler\Ahk2exe.exe" /in "XBoxMouse.ahk" /icon "controller.ico" /pass "CustomPassword" /NoDecompile
+del "C:\Users\Lorman Mamuyac\Documents\AHK3rdPartyTools\Gamepad2MouseKeyboard\XBoxMouseSQuEDSOSK-Mod\XBoxMouse.exe"
+"C:\Users\Lorman Mamuyac\Downloads\Xbox360Chatpad\AutoHotkey104805\Compiler\Ahk2exe.exe" /in "C:\Users\Lorman Mamuyac\Documents\AHK3rdPartyTools\Gamepad2MouseKeyboard\XBoxMouseSQuEDSOSK-Mod\source\XBoxMouse.ahk" /icon "C:\Users\Lorman Mamuyac\Documents\AHK3rdPartyTools\Gamepad2MouseKeyboard\XBoxMouseSQuEDSOSK-Mod\source\controller.ico" /pass "CustomPassword" /NoDecompile
+

@@ -1,6 +1,11 @@
 1. Replace Keyboard design.
---Keyboard Mode(Y"Only Works when Mouse Mode is on.")
---Somehow Disable gamepad functioning as a reular gamepad when in KB Mode.
---Figure out the formulas for the Joystick regions.
---Show Tooltip for selected letter.
---Press A to input selected letter.
+--Keyboard Mode(Y During Mouse Mode Turns off Mouse Mode)
+--Disable gamepad functioning as a regular gamepad when in KB Mode.
+--Figured out the rough formulas for the Joystick regions. According to this article: https://www.gamedeveloper.com/design/towards-better-gamepad-text-input
+--Shows Tooltip for selected character.
+--Press LB to toggle Caps Lock.
+--Press RB to input selected letter.
+--Press B to Backspace.
+--Press A to Spacebar.
+--Press X to switch from Left/Right Joysticks.
+--The option to switch from letters to numbers and symbols and vice versa is on the right joystick's rightmost side.
