@@ -545,8 +545,21 @@ KeebMode:
 	if (ToggleMouseSimulator = 1) AND (ToggleKeyBoardMode = 1)
 	{
 		; KeebMode is on so disable regular gamepad functionality and replace the Left/Right Stick, Button A, Button Y, And Left Bumper with KeebMode functions.
-		; Button A
-		Hotkey, %JoystickPrefix%1, Blank
+
+		; Block all joystick buttons to prevent default gamepad input in games
+        Loop, 1, 32
+        {
+            Hotkey, %JoystickPrefix%%A_Index%, Blank
+        }
+        ; Optionally block POV and axes if needed
+        Hotkey, %JoystickPrefix%POV, Blank
+        Hotkey, %JoystickPrefix%X, Blank
+        Hotkey, %JoystickPrefix%Y, Blank
+        Hotkey, %JoystickPrefix%Z, Blank
+        Hotkey, %JoystickPrefix%R, Blank
+        Hotkey, %JoystickPrefix%U, Blank
+        Hotkey, %JoystickPrefix%V, Blank
+
 		; Start Button
 		Hotkey, %JoystickPrefix%8, Blank
 		; Back Button
@@ -555,7 +568,6 @@ KeebMode:
 		Hotkey, %JoystickPrefix%9, Blank
 		; Right Stick Button
 		Hotkey, %JoystickPrefix%10, Blank
-
 
 		; Remap the buttons to keebmode functions
 		; Left Bumper
